@@ -1,25 +1,43 @@
 // QRScanner.jsx
 
 import React, { useEffect } from 'react';
+import Quagga from 'quagga';
 import { Html5QrcodeScanner } from 'html5-qrcode'; // Import named export
 import '../component/Qr.css'
 function QRScanner() {
   useEffect(() => {
-    const onScanSuccess = (decodeText, decodeResult) => {
-      alert(`Bạn đã quét mã QR thành công: ${decodeText}`);
-      // Xử lý khi quét thành công ở đây
-    };
+    Quagga.init({
+      inputStream: {
+        name: 'Live',
+        type: 'LiveStream',
+        target: document.querySelector('#my-qr-reader'),
+        constraints: {
+          width: 480,
+          height: 320,
+          facingMode: 'environment', // or 'user' for front camera
+        },
+      },
+      decoder: {
+        readers: ['ean_reader', 'ean_8_reader'],
+      },
+    }, function(err) {
+      if (err) {
+        console.error('Quét mã QR thất bại:', err);
+        return;
+      }
+      console.log('Quét mã QR thành công');
+      Quagga.start();
+    });
 
-    const htmlScanner = new Html5QrcodeScanner(
-      'my-qr-reader',
-      { fps: 10, qrbox: 250 }
-    );
-    htmlScanner.render(onScanSuccess);
+    Quagga.onDetected((result) => {
+      console.log('Kết quả quét:', result);
+      // Xử lý khi quét thành công ở đây
+    });
 
     return () => {
-      htmlScanner.clear();
+      Quagga.stop();
     };
-  }, []); // Chạy chỉ một lần khi component được gắn vào DOM
+  }, []);
 
   return (
     <div className="container">
